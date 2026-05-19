@@ -4,7 +4,7 @@ An interactive web-based ML health screening tool that estimates a user's
 risk of developing Type 2 diabetes using a logistic-regression–style
 weighted scoring model.
 
-![Demo Screenshot](assets/screenshot.png)
+![Demo Screenshot](assets/SS4.jng)
 
 ## 🔗 Live Demo
 [Click here to view the live app](https://YOUR_USERNAME.github.io/diabetes-risk-predictor)
