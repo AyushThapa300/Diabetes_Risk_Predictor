@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diabetes Risk Predictor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; background: #f9f9f7; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+.app { padding: 1.5rem 0; font-family: var(--font-sans); }
+
+.app-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: 16px;
+}
+.header-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: #E1F5EE; display: flex; align-items: center; justify-content: center;
+  color: #0F6E56; font-size: 22px; flex-shrink: 0;
+}
+.header-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.header-sub { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.progress-bar-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 1.5rem 16px;
+}
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-secondary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
+  flex-shrink: 0; cursor: pointer; transition: all 0.2s;
+}
+.step-dot.active { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+.step-dot.done { background: #E1F5EE; border-color: #5DCAA5; color: #0F6E56; }
+.step-line { flex: 1; height: 1px; background: var(--color-border-tertiary); }
+.step-line.done { background: #5DCAA5; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+.card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 12px;
+}
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+.card-icon { font-size: 18px; color: #1D9E75; }
+.card-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.field select, .field input[type=number] { width: 100%; }
+
+.slider-wrap { display: flex; align-items: center; gap: 10px; }
+.slider-wrap input[type=range] { flex: 1; }
+.slider-badge {
+  min-width: 52px; text-align: center;
+  background: #E1F5EE; color: #085041;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 13px; font-weight: 500;
+}
+
+.nav-row { display: flex; gap: 10px; margin-top: 4px; }
+.btn-next {
+  flex: 1; padding: 11px;
+  background: #1D9E75; color: #fff;
+  border: none; border-radius: var(--border-radius-md);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-next:hover { background: #0F6E56; }
+.btn-back {
+  padding: 11px 18px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  font-size: 14px; cursor: pointer;
+}
+.btn-back:hover { background: var(--color-background-tertiary); }
+.btn-assess {
+  flex: 1; padding: 12px;
+  background: #085041; color: #9FE1CB;
+  border: none; border-radius: var(--border-radius-md);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-assess:hover { background: #04342C; }
+
+.result-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden; margin-bottom: 12px;
+}
+.result-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+.result-label { font-size: 26px; font-weight: 500; margin-top: 6px; }
+.result-pct { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.meter-wrap { padding: 0 1.5rem 6px; }
+.meter-track {
+  width: 100%; height: 10px; border-radius: 5px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  margin: 14px 0 6px; position: relative; overflow: hidden;
+}
+.meter-fill {
+  height: 100%; border-radius: 5px;
+  transition: width 0.7s ease;
+}
+.meter-ticks {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--color-text-tertiary); padding: 0 2px;
+}
+
+.factors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 1.25rem 1.5rem; border-top: 0.5px solid var(--color-border-tertiary); }
+.factor-chip {
+  padding: 9px 12px; border-radius: var(--border-radius-md);
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+  border: 0.5px solid transparent;
+}
+.factor-chip.ok { background: #E1F5EE; color: #085041; border-color: #9FE1CB; }
+.factor-chip.warn { background: #FAEEDA; color: #633806; border-color: #FAC775; }
+.factor-chip.bad { background: #FCEBEB; color: #791F1F; border-color: #F7C1C1; }
+
+.tip-box {
+  margin: 0 1.5rem 1.25rem;
+  padding: 12px 14px;
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid #1D9E75;
+  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  font-size: 13px; color: var(--color-text-secondary); line-height: 1.6;
+}
+
+.disclaimer {
+  font-size: 12px; color: var(--color-text-tertiary);
+  padding: 10px 1.5rem 0; line-height: 1.6;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+
+.summary-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 1rem 1.5rem;
+  border-top: 0.5px solid var(--color-border-tertiary);
+}
+.chip {
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; background: var(--color-background-secondary);
+  color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary);
+}
+
+#result-section { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+  <h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Diabetes risk predictor — interactive health screening tool</h2>
+
+  <div class="app-header">
+    <div class="header-icon"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i></div>
+    <div>
+      <div class="header-title">Diabetes risk predictor</div>
+      <div class="header-sub">Answer 3 steps to get your personalised risk score</div>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="step-dot active" id="dot1">1</div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-dot" id="dot2">2</div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-dot" id="dot3">3</div>
+  </div>
+
+  <div class="step-panel active" id="step1">
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-user card-icon" aria-hidden="true"></i>
+        <span class="card-title">Personal info</span>
+      </div>
+      <div class="grid3">
+        <div class="field">
+          <div class="field-label">Age</div>
+          <div class="slider-wrap">
+            <input type="range" min="18" max="90" value="35" step="1" id="age" oninput="sv('age-v',this.value)">
+            <span class="slider-badge" id="age-v">35</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Sex</div>
+          <select id="sex"><option value="0">Female</option><option value="1">Male</option></select>
+        </div>
+        <div class="field">
+          <div class="field-label">Family history</div>
+          <select id="family"><option value="0">No diabetes</option><option value="1">Yes, has diabetes</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-next" onclick="goStep(2)">Next — body metrics <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step2">
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-activity card-icon" aria-hidden="true"></i>
+        <span class="card-title">Body metrics</span>
+      </div>
+      <div class="grid2" style="margin-bottom:16px">
+        <div class="field">
+          <div class="field-label">BMI</div>
+          <div class="slider-wrap">
+            <input type="range" min="15" max="50" value="24" step="0.1" id="bmi" oninput="sv('bmi-v',parseFloat(this.value).toFixed(1))">
+            <span class="slider-badge" id="bmi-v">24.0</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Waist circumference (cm)</div>
+          <div class="slider-wrap">
+            <input type="range" min="60" max="150" value="82" step="1" id="waist" oninput="sv('waist-v',this.value)">
+            <span class="slider-badge" id="waist-v">82</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <div class="field-label">Systolic BP (mmHg)</div>
+          <div class="slider-wrap">
+            <input type="range" min="90" max="200" value="120" step="1" id="bp" oninput="sv('bp-v',this.value)">
+            <span class="slider-badge" id="bp-v">120</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Fasting glucose (mg/dL)</div>
+          <div class="slider-wrap">
+            <input type="range" min="60" max="300" value="95" step="1" id="glucose" oninput="sv('glucose-v',this.value)">
+            <span class="slider-badge" id="glucose-v">95</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(1)"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <button class="btn-next" onclick="goStep(3)">Next — lifestyle <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step3">
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-run card-icon" aria-hidden="true"></i>
+        <span class="card-title">Lifestyle</span>
+      </div>
+      <div class="grid3">
+        <div class="field">
+          <div class="field-label">Physical activity</div>
+          <select id="activity">
+            <option value="3">Very active</option>
+            <option value="2" selected>Moderately active</option>
+            <option value="1">Lightly active</option>
+            <option value="0">Sedentary</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Smoking status</div>
+          <select id="smoking">
+            <option value="0">Never</option>
+            <option value="1">Former smoker</option>
+            <option value="2">Current smoker</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Diet quality</div>
+          <select id="diet">
+            <option value="0">Healthy</option>
+            <option value="1">Moderate</option>
+            <option value="2">Unhealthy</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" onclick="goStep(2)"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <button class="btn-assess" onclick="predict()"><i class="ti ti-stethoscope" aria-hidden="true"></i> Assess my risk</button>
+    </div>
+  </div>
+
+  <div id="result-section">
+    <div class="result-card">
+      <div class="result-header">
+        <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Your risk assessment</div>
+        <div class="result-label" id="risk-label">—</div>
+        <div class="result-pct" id="risk-score">—</div>
+      </div>
+      <div class="meter-wrap">
+        <div class="meter-track"><div class="meter-fill" id="meter-fill" style="width:0%"></div></div>
+        <div class="meter-ticks"><span>Low</span><span>Moderate</span><span>High</span><span>Very high</span></div>
+      </div>
+      <div class="summary-chips" id="summary-chips"></div>
+      <div class="factors-grid" id="factors"></div>
+      <div class="tip-box" id="tip-text"></div>
+      <div class="disclaimer">
+        <i class="ti ti-shield-check" style="font-size:16px;flex-shrink:0;margin-top:1px" aria-hidden="true"></i>
+        <span>For educational purposes only — not a medical diagnosis. Please consult a qualified healthcare professional for personalised advice.</span>
+      </div>
+      <div style="padding: 12px 1.5rem 1.25rem;">
+        <button class="btn-back" onclick="resetApp()" style="display:flex;align-items:center;gap:6px"><i class="ti ti-refresh" aria-hidden="true"></i> Reassess</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function sv(id, val) { document.getElementById(id).textContent = val; }
+
+function goStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step'+i).classList.toggle('active', i===n);
+    const dot = document.getElementById('dot'+i);
+    dot.classList.remove('active','done');
+    if(i===n) dot.classList.add('active');
+    else if(i<n) dot.classList.add('done');
+  });
+  [1,2].forEach(i => {
+    const line = document.getElementById('line'+i);
+    line.classList.toggle('done', i<n);
+  });
+}
+
+function predict() {
+  const age = +document.getElementById('age').value;
+  const sex = +document.getElementById('sex').value;
+  const family = +document.getElementById('family').value;
+  const bmi = parseFloat(document.getElementById('bmi').value);
+  const waist = +document.getElementById('waist').value;
+  const bp = +document.getElementById('bp').value;
+  const glucose = +document.getElementById('glucose').value;
+  const activity = +document.getElementById('activity').value;
+  const smoking = +document.getElementById('smoking').value;
+  const diet = +document.getElementById('diet').value;
+
+  let score = 0;
+  if(age>=65) score+=16; else if(age>=55) score+=13; else if(age>=45) score+=8; else if(age>=35) score+=3;
+  if(family===1) score+=14;
+  if(sex===1) score+=2;
+  if(bmi>=35) score+=20; else if(bmi>=30) score+=14; else if(bmi>=25) score+=7;
+  const wc = sex===1?102:88;
+  if(waist>=wc) score+=10; else if(waist>=wc-12) score+=4;
+  if(bp>=140) score+=10; else if(bp>=130) score+=5;
+  if(glucose>=126) score+=30; else if(glucose>=100) score+=15;
+  if(activity===0) score+=10; else if(activity===1) score+=5;
+  if(smoking===2) score+=6; else if(smoking===1) score+=2;
+  if(diet===2) score+=8; else if(diet===1) score+=3;
+
+  const pct = Math.min(100, Math.round((score/126)*100));
+
+  let label, fillColor, tip;
+  if(pct<25){
+    label='Low risk'; fillColor='#1D9E75';
+    tip='Your risk factors look good. Keep up regular exercise, a balanced diet, and annual checkups.';
+  } else if(pct<50){
+    label='Moderate risk'; fillColor='#BA7517';
+    tip='Some modifiable risk factors detected. Consider increasing physical activity, reducing refined carbs, and scheduling a fasting glucose test.';
+  } else if(pct<72){
+    label='High risk'; fillColor='#E24B4A';
+    tip='Multiple significant risk factors found. Please consult a doctor for an HbA1c test — lifestyle changes now can prevent or delay Type 2 diabetes.';
+  } else {
+    label='Very high risk'; fillColor='#A32D2D';
+    tip='Seek medical evaluation soon. Your markers suggest possible pre-diabetic or diabetic range. An HbA1c test is strongly recommended.';
+  }
+
+  document.getElementById('risk-label').textContent = label;
+  document.getElementById('risk-label').style.color = fillColor;
+  document.getElementById('risk-score').textContent = 'Risk score: '+pct+' / 100';
+  document.getElementById('meter-fill').style.width = pct+'%';
+  document.getElementById('meter-fill').style.background = fillColor;
+  document.getElementById('tip-text').textContent = tip;
+
+  const actLabels = ['Sedentary','Light','Moderate','Very active'];
+  const chips = [
+    'Age: '+age,
+    'BMI: '+bmi.toFixed(1),
+    'Glucose: '+glucose+' mg/dL',
+    'BP: '+bp+' mmHg',
+    'Activity: '+actLabels[activity],
+  ];
+  document.getElementById('summary-chips').innerHTML = chips.map(c=>`<span class="chip">${c}</span>`).join('');
+
+  const fs = [
+    {text:'BMI '+bmi.toFixed(1), cls: bmi<25?'ok':bmi<30?'warn':'bad', icon: bmi<25?'ti-check':'ti-alert-triangle'},
+    {text:'Glucose '+glucose+' mg/dL', cls: glucose<100?'ok':glucose<126?'warn':'bad', icon: glucose<100?'ti-check':'ti-alert-triangle'},
+    {text:'BP '+bp+' mmHg', cls: bp<130?'ok':bp<140?'warn':'bad', icon: bp<130?'ti-check':'ti-alert-triangle'},
+    {text:'Activity: '+actLabels[activity], cls: activity>=2?'ok':activity===1?'warn':'bad', icon: activity>=2?'ti-check':'ti-alert-triangle'},
+    {text:'Family history: '+(family?'Yes':'No'), cls: family?'warn':'ok', icon: family?'ti-dna':'ti-check'},
+    {text:'Waist '+waist+' cm', cls: waist<(wc-12)?'ok':waist<wc?'warn':'bad', icon: waist<(wc-12)?'ti-check':'ti-alert-triangle'},
+  ];
+  document.getElementById('factors').innerHTML = fs.map(f=>`<div class="factor-chip ${f.cls}"><i class="ti ${f.icon}" style="font-size:15px;flex-shrink:0" aria-hidden="true"></i>${f.text}</div>`).join('');
+
+  [1,2,3].forEach(i=>{
+    document.getElementById('step'+i).classList.remove('active');
+    const dot=document.getElementById('dot'+i);
+    dot.classList.remove('active'); dot.classList.add('done');
+  });
+  [1,2].forEach(i=>document.getElementById('line'+i).classList.add('done'));
+
+  const rs = document.getElementById('result-section');
+  rs.style.display='block';
+  rs.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function resetApp() {
+  document.getElementById('result-section').style.display='none';
+  goStep(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+
+</body>
+</html>
